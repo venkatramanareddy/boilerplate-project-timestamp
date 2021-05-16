@@ -25,6 +25,58 @@ app.get("/api/hello", function (req, res) {
 });
 
 
+function formDateResp(date){
+  resp = {
+    unix: date.getTime(),
+    utc: date.toUTCString()
+  }
+  return resp;
+}
+
+function getDateObject(input){
+  // check if input is unix/utc/Invalid
+  try{
+    let date = new Date(input);
+    if(date.toString() === "Invalid Date"){
+      // may be utc
+      console.log("Parsing as unix")
+      const parsed = parseFloat(input);
+      if(!Number.isNaN(parsed) && Number.isFinite(parsed) && /^\d+\.?\d+$/.test(input)){
+        date = new Date(parsed);
+        return date;
+      }
+    }
+    else{
+      // definitely a date
+      return date;
+    }
+  }
+  catch(e){
+    console.log(`Exception : ${e}`)
+    return null;
+  }
+  return null;
+}
+
+// gets current date/time
+app.get("/api", function(req, res){
+  let today = new Date()
+  res.send(formDateResp(today))
+})
+
+app.get("/api/:date", function(req, res){
+  console.log(req.params.date);
+
+  let date = getDateObject(req.params.date);
+  let resp =  { error : "Invalid Date" };
+  if(date != null){
+    console.log("date is not null!")
+    resp = formDateResp(date);
+  }
+  console.log(`response ${JSON.stringify(resp)}`)
+  res.send(resp);
+})
+
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
